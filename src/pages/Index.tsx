@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import Icon from '@/components/ui/icon';
+import pptxgen from 'pptxgenjs';
 
 const quizData = {
   rounds: [
@@ -148,6 +149,108 @@ export default function Index() {
 
   const progress = ((currentRound * 10 + currentQuestion) / 60) * 100;
 
+  const generatePowerPoint = () => {
+    const pptx = new pptxgen();
+
+    pptx.layout = 'LAYOUT_WIDE';
+    pptx.defineSlideMaster({
+      title: 'MASTER_SLIDE',
+      background: { color: '1a1f2c' },
+    });
+
+    const titleSlide = pptx.addSlide({ masterName: 'MASTER_SLIDE' });
+    titleSlide.background = { color: '1a1f2c' };
+    titleSlide.addText('МИР ИГР', {
+      x: 0.5, y: 1.5, w: 9, h: 2,
+      fontSize: 60, bold: true, color: 'FF00FF',
+      align: 'center'
+    });
+    titleSlide.addText('🎮 🎲 🧩 🏆 ⚔️ 😄', {
+      x: 0.5, y: 3.5, w: 9, h: 1,
+      fontSize: 40, align: 'center'
+    });
+    titleSlide.addText('Квиз для геймеров 13-15 лет', {
+      x: 0.5, y: 4.5, w: 9, h: 0.5,
+      fontSize: 24, color: '00FFFF', align: 'center'
+    });
+
+    const rulesSlide = pptx.addSlide({ masterName: 'MASTER_SLIDE' });
+    rulesSlide.background = { color: '1a1f2c' };
+    rulesSlide.addText('ПРАВИЛА', {
+      x: 0.5, y: 0.5, w: 9, h: 1,
+      fontSize: 48, bold: true, color: '00FFFF', align: 'center'
+    });
+    rulesSlide.addText('🎯 6 раундов по 10 вопросов\n✅ Выбери правильный ответ из 4 вариантов\n⭐ За каждый правильный ответ — 1 балл\n🏆 Максимум 60 баллов', {
+      x: 1, y: 2, w: 8, h: 3,
+      fontSize: 20, color: 'FFFFFF', lineSpacing: 40
+    });
+
+    quizData.rounds.forEach((round, roundIdx) => {
+      const roundSlide = pptx.addSlide({ masterName: 'MASTER_SLIDE' });
+      roundSlide.background = { color: '1a1f2c' };
+      roundSlide.addText(`РАУНД ${roundIdx + 1}`, {
+        x: 0.5, y: 1.5, w: 9, h: 1,
+        fontSize: 48, bold: true, color: 'FB2708', align: 'center'
+      });
+      roundSlide.addText(round.title, {
+        x: 0.5, y: 3, w: 9, h: 1,
+        fontSize: 36, color: '00FFFF', align: 'center'
+      });
+
+      round.questions.forEach((question, qIdx) => {
+        const qSlide = pptx.addSlide({ masterName: 'MASTER_SLIDE' });
+        qSlide.background = { color: '1a1f2c' };
+        qSlide.addText(`Вопрос ${qIdx + 1}`, {
+          x: 0.5, y: 0.3, w: 9, h: 0.5,
+          fontSize: 18, color: '00FFFF'
+        });
+        qSlide.addText(question.q, {
+          x: 0.5, y: 1.2, w: 9, h: 1.5,
+          fontSize: 28, bold: true, color: 'FFFFFF', align: 'center'
+        });
+        
+        question.a.forEach((answer, aIdx) => {
+          const row = Math.floor(aIdx / 2);
+          const col = aIdx % 2;
+          qSlide.addText(answer, {
+            x: 0.5 + col * 5, y: 3 + row * 1.2, w: 4.5, h: 1,
+            fontSize: 18, color: 'FFFFFF',
+            fill: { color: '0a0e27' },
+            align: 'center'
+          });
+        });
+
+        const aSlide = pptx.addSlide({ masterName: 'MASTER_SLIDE' });
+        aSlide.background = { color: '1a1f2c' };
+        aSlide.addText('ПРАВИЛЬНЫЙ ОТВЕТ:', {
+          x: 0.5, y: 1.5, w: 9, h: 1,
+          fontSize: 36, bold: true, color: 'FFD700', align: 'center'
+        });
+        aSlide.addText(question.a[question.correct], {
+          x: 0.5, y: 3, w: 9, h: 1.5,
+          fontSize: 32, color: '00FFFF', align: 'center'
+        });
+      });
+    });
+
+    const finalSlide = pptx.addSlide({ masterName: 'MASTER_SLIDE' });
+    finalSlide.background = { color: '1a1f2c' };
+    finalSlide.addText('🏆', {
+      x: 0.5, y: 1, w: 9, h: 1,
+      fontSize: 72, align: 'center'
+    });
+    finalSlide.addText('ФИНИШ!', {
+      x: 0.5, y: 2.5, w: 9, h: 1,
+      fontSize: 48, bold: true, color: 'FFD700', align: 'center'
+    });
+    finalSlide.addText('Спасибо за игру!', {
+      x: 0.5, y: 4, w: 9, h: 1,
+      fontSize: 32, color: '00FFFF', align: 'center'
+    });
+
+    pptx.writeFile({ fileName: 'Квиз_Мир_Игр.pptx' });
+  };
+
   return (
     <div className="min-h-screen bg-[#1a1f2c] flex items-center justify-center p-4">
       <div className="w-full max-w-4xl">
@@ -163,12 +266,21 @@ export default function Index() {
               <p className="text-xl text-[#00FFFF] font-semibold">
                 Квиз для геймеров 13-15 лет
               </p>
-              <Button
-                onClick={nextSlide}
-                className="font-pixel text-lg px-8 py-6 bg-[#FB2708] hover:bg-[#FF00FF] neon-border transition-all duration-300"
-              >
-                СТАРТ
-              </Button>
+              <div className="flex gap-4 justify-center">
+                <Button
+                  onClick={nextSlide}
+                  className="font-pixel text-lg px-8 py-6 bg-[#FB2708] hover:bg-[#FF00FF] neon-border transition-all duration-300"
+                >
+                  СТАРТ
+                </Button>
+                <Button
+                  onClick={generatePowerPoint}
+                  className="font-pixel text-lg px-8 py-6 bg-[#00FFFF] text-[#1a1f2c] hover:bg-[#FFD700] neon-border-cyan transition-all duration-300"
+                >
+                  <Icon name="Download" size={24} className="mr-2" />
+                  СКАЧАТЬ PPT
+                </Button>
+              </div>
             </div>
           </Card>
         )}
